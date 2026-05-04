@@ -1,0 +1,30 @@
+### Crear post (con auth)
+POST http://localhost:3000/posts
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Mi primer post",
+  "content": "Contenido del post",
+  "published": true
+}
+
+### Listar posts
+GET http://localhost:3000/posts
+
+### Buscar post por ID
+GET http://localhost:3000/posts/{id}
+
+### Actualizar post (con auth)
+PUT http://localhost:3000/posts/9
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyIiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzc0NjgxOTA2LCJleHAiOjE3NzUyODY3MDZ9.I1fALJ90RnSWJfx9MVJBPtfuAj6s1TWMGVZKa1eZwm0
+Content-Type: application/json
+
+{
+  "title": "Título actualizado",
+  "published": false
+}
+
+### Eliminar post (Soft Delete) (con auth)
+DELETE http://localhost:3000/posts/{id}
+Authorization: Bearer <token}
