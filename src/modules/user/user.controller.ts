@@ -1,11 +1,10 @@
-import { createUserSchema, findAllUserSchema, getIdUserSchema, getUserByIdSchema, loginSchema, updateUserSchema } from "./user.schema.js";
+import { createUserSchema, loginSchema, updateUserSchema } from "./user.schema.js";
 import { UserService } from "./user.service.js";
 
 import type { Request, Response } from 'express';
 import { generateToken } from "../../../utils/jwt.js";
 import type { AuthRequest } from "../../middleware/auth.js";
 import { asyncHandler } from "../../middleware/asyncHandler.js";
-import type { UpdateUserDTO } from "../../types/user.types.js";
 
 export class UserController {
     userService: UserService;
@@ -89,7 +88,7 @@ export class UserController {
 
         const data = updateUserSchema.parse(req.body)
 
-        const user = await this.userService.updateUser(id, data as UpdateUserDTO) 
+        const user = await this.userService.updateUser(id, data) 
 
         res.status(200).json({
             user
@@ -101,7 +100,7 @@ export class UserController {
         const id = req.params.id as string
 
         if (req.userId !== id) {
-            return res.status(403).json({ error: "No puedes eliminar otro usuario|" })
+            return res.status(403).json({ error: "No puedes eliminar otro usuario" })
         }
 
         const userDelete = await this.userService.deleteUser(id)

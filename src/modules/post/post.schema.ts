@@ -15,5 +15,5 @@ export const updatePostSchema = z.object({
 
 export const deletePostSchema = z.object({
     id: z.number().int().positive(),
-    authorId: z.number().int().positive()
+    authorId: z.string()
 });

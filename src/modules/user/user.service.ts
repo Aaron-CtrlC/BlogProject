@@ -1,85 +1,75 @@
 import { prisma } from '../../config/prisma.js';
 import bcrypt from 'bcrypt';
-import type { CreateUserDTO, UpdateUserDTO, UserDTO } from '../../types/user.types.js';
-import type { UpdatePostDTO } from '../../types/post.types.js';
+import type { User } from '../../generated/client/client.js';
+import type { Prisma } from '../../generated/client/client.js';
+import { NotFoundError } from '../../utils/errors.js';
 
 export class UserService {
-    async create(data: CreateUserDTO) {
-
-        const hashedPassword = await bcrypt.hash(data.password, 10)
+    async create(data: Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>) {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
         return prisma.user.create({
             data: {
                 email: data.email,
                 name: data.name,
                 password: hashedPassword,
             }
-        })
-    }
-
-    async findById(id: string): Promise<UserDTO | null> {
-        const user: UserDTO | null = await prisma.user.findFirst({
-            where:
-            {
-                id: id,
-                deletedAt: null
-            }
         });
-
-        return user;
     }
 
-    async findByEmail(email: string): Promise<UserDTO | null> {
-        const user: UserDTO | null = await prisma.user.findFirst({
-            where: {
-                email: email,
-                deletedAt: null
-            }
+    async findById(id: string): Promise<User | null> {
+        return prisma.user.findFirst({
+            where: { id, deletedAt: null }
         });
-        return user;
     }
 
-
-    async findAll(): Promise<UserDTO[]> {
-        const usersList: UserDTO[] = await prisma.user.findMany({
-            where: {
-                deletedAt: null
-            }
+    async findByEmail(email: string): Promise<User | null> {
+        return prisma.user.findFirst({
+            where: { email, deletedAt: null }
         });
-        return usersList;
     }
 
-    async updateUser(id: string, data: UpdateUserDTO) {
-        const updateData: Partial<UpdateUserDTO> = { ...data }; 
+    async findAll(): Promise<User[]> {
+        return prisma.user.findMany({
+            where: { deletedAt: null }
+        });
+    }
 
-        if (data.name) updateData.name = data.name;
-        if (data.email) updateData.email = data.email;
+    async updateUser(id: string, data: Partial<Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>>) {
+        const existing = await prisma.user.findFirst({
+            where: { id, deletedAt: null }
+        });
+        if (!existing) {
+            throw new NotFoundError('Usuario no encontrado');
+        }
 
+        const updateData: Partial<Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>> = { ...data };
         if (data.password) {
             updateData.password = await bcrypt.hash(data.password, 10);
         }
-        const userUpdated = await prisma.user.update({
-            where: { id, deletedAt: null }, 
+
+        return prisma.user.update({
+            where: { id },
             data: updateData
         });
-        return userUpdated;
     }
-
 
     async validatePassword(plainPassword: string, hashedPassword: string) {
-
-        return bcrypt.compare(plainPassword, hashedPassword)
+        return bcrypt.compare(plainPassword, hashedPassword);
     }
 
-
     async deleteUser(id: string) {
-
+        const existing = await prisma.user.findFirst({
+            where: { id, deletedAt: null }
+        });
+        if (!existing) {
+            throw new NotFoundError('Usuario no encontrado');
+        }
 
         return prisma.user.update({
             where: { id },
             data: { deletedAt: new Date() }
         });
     }
-
 }
     
 

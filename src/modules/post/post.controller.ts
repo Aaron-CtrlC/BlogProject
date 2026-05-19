@@ -4,7 +4,6 @@ import type { Request, Response } from 'express';
 import type { AuthRequest } from '../../middleware/auth.js';
 
 import { asyncHandler } from "../../middleware/asyncHandler.js";
-import type { CreatePostDTO } from '../../types/post.types.js';
 
 
 export class PostController {
@@ -19,7 +18,7 @@ export class PostController {
         const parsed = createPostSchema.parse(req.body);
         const authorId: string = req.userId!;
 
-        const data: CreatePostDTO = {
+        const data = {
             ...parsed,
             authorId
         };
