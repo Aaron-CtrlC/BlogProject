@@ -24,7 +24,6 @@ export const loginSchema = z.object({
 export const userResponseSchema = z.object({
     email: z.email(),
     name: z.string().nullable(),
-    password: z.string()
 });
 
 export const findAllUserSchema = z.object({

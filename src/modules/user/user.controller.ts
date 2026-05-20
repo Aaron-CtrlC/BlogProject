@@ -1,5 +1,6 @@
 import { createUserSchema, loginSchema, updateUserSchema } from "./user.schema.js";
 import { UserService } from "./user.service.js";
+import { UnauthorizedError, NotFoundError, ForbiddenError } from "../../utils/errors.js";
 
 import type { Request, Response } from 'express';
 import { generateToken } from "../../../utils/jwt.js";
@@ -28,31 +29,25 @@ export class UserController {
 
         const user = await this.userService.findByEmail(data.email)
 
-
         if (!user) {
-            return res.status(401).json({ error: 'Credenciales invalidas' });
+            throw new UnauthorizedError('Credenciales inválidas');
         }
 
-        const isValid = await this.userService.validatePassword(data.password, user.password!)
+        const isValid = await this.userService.validatePassword(data.password, user.password)
 
         if (!isValid) {
-            return res.status(401).json({ error: 'Credenciales Invalidadas' })
+            throw new UnauthorizedError('Credenciales inválidas');
         }
 
         const token = generateToken({ userId: user.id, email: user.email });
         res.json({ token, userId: user.id, email: user.email })
-
     })
 
 
     findAll = asyncHandler(async (req: Request, res: Response) => {
         const users = await this.userService.findAll()
 
-        if (!users) {
-            return res.status(404).json({ error: 'Usuarios no encontrados' });
-
-        }
-
+        
         res.status(200).json({
             message: 'Lista de usuarios',
             users
@@ -66,24 +61,21 @@ export class UserController {
         const user = await this.userService.findById(id)
 
         if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-
+            throw new NotFoundError('Usuario no encontrado');
         }
-
 
         res.status(200).json({
             id: user.id,
             email: user.email,
             name: user.name
         })
-
     });
 
     update = asyncHandler(async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
-            return res.status(403).json({ error: "No puedes actualizar otro usuario" })
+            throw new ForbiddenError('No puedes actualizar otro usuario');
         }
 
         const data = updateUserSchema.parse(req.body)
@@ -93,24 +85,18 @@ export class UserController {
         res.status(200).json({
             user
         })
-
     })
 
     delete = asyncHandler(async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
-            return res.status(403).json({ error: "No puedes eliminar otro usuario" })
+            throw new ForbiddenError('No puedes eliminar otro usuario');
         }
 
         const userDelete = await this.userService.deleteUser(id)
 
-        if (!userDelete) {
-            return res.status(404).json({ error: "Usuario no eliminado" })
-        }
-
         res.json({ message: 'Delete exitoso', userDelete })
-
     })
 
 

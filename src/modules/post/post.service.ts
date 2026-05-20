@@ -15,7 +15,7 @@ export class PostService {
         });
     }
 
-    async updatePostById(id: number, data: Partial<Pick<Prisma.PostUncheckedUpdateInput, 'title' | 'content' | 'published'>>, authorId: string): Promise<Post> {
+    async updatePostById(id: string, data: Partial<Pick<Prisma.PostUncheckedUpdateInput, 'title' | 'content' | 'published'>>, authorId: string): Promise<Post> {
         const existing = await prisma.post.findFirst({
             where: { id, deletedAt: null }
         });
@@ -39,7 +39,7 @@ export class PostService {
         });
     }
 
-    async deletePost(id: number, authorId: string): Promise<Post> {
+    async deletePost(id: string, authorId: string): Promise<Post> {
         const existing = await prisma.post.findFirst({
             where: { id, deletedAt: null }
         });
@@ -57,7 +57,7 @@ export class PostService {
         });
     }
 
-    async findById(postId: number): Promise<Post | null> {
+    async findById(postId: string): Promise<Post | null> {
         return prisma.post.findFirst({ where: { id: postId, deletedAt: null } });
     }
 

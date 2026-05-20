@@ -2,7 +2,7 @@ import { PostService } from './post.service.js';
 import { createPostSchema, updatePostSchema } from './post.schema.js';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../../middleware/auth.js';
-
+import { NotFoundError } from '../../utils/errors.js';
 import { asyncHandler } from "../../middleware/asyncHandler.js";
 
 
@@ -35,22 +35,19 @@ export class PostController {
     })
 
     findById = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
+        const id: string = req.params.id as string;
         const post = await this.postService.findById(id);
 
         if (!post) {
-            res.status(404).json({ error: 'Post no encontrado' });
-            return;
+            throw new NotFoundError('Post no encontrado');
         }
 
         res.status(200).json(post)
-
-
     })
 
 
     update = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
+        const id: string = req.params.id as string;
 
         const data = updatePostSchema.parse(req.body);
         const authorId: string = (req as AuthRequest).userId!;
@@ -60,7 +57,7 @@ export class PostController {
     })
 
     delete = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
+        const id: string = req.params.id as string;
         const authorId: string = (req as AuthRequest).userId!;
         await this.postService.deletePost(id, authorId);
         res.status(204).send();
