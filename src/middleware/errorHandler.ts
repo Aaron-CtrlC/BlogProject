@@ -8,13 +8,19 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     // Errores de validación Zod
     if (err instanceof ZodError) {
         return res.status(400).json({
-            message: 'Error de validación',
-            errors: err.issues
+            success: false,
+            statusCode: 400,
+            error: 'Error de validación',
+            details: err.issues
         });
     }
 
     if (err instanceof AppError) {
-        return res.status(err.statusCode).json({ error: err.message });
+        return res.status(err.statusCode).json({
+            success: false,
+            statusCode: err.statusCode,
+            error: err.message
+        });
     }
 
     // Errores conocidos de Prisma
@@ -22,13 +28,13 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     if (prismaErr.code) {
         switch (prismaErr.code) {
             case 'P2025':
-                return res.status(404).json({ error: 'Recurso no encontrado' });
+                return res.status(404).json({ success: false, statusCode: 404, error: 'Recurso no encontrado' });
             case 'P2002':
-                return res.status(409).json({ error: 'El recurso ya existe' });
+                return res.status(409).json({ success: false, statusCode: 409, error: 'El recurso ya existe' });
             default:
                 break;
         }
     }
 
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ success: false, statusCode: 500, error: 'Error interno del servidor' });
 }

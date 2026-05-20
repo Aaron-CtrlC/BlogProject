@@ -6,6 +6,7 @@ import type { Request, Response } from 'express';
 import { generateToken } from "../../../utils/jwt.js";
 import type { AuthRequest } from "../../middleware/auth.js";
 import { asyncHandler } from "../../middleware/asyncHandler.js";
+import { sendSuccess } from "../../utils/response.js";
 
 export class UserController {
     userService: UserService;
@@ -19,7 +20,7 @@ export class UserController {
 
         const user = await this.userService.create(data)
 
-        res.status(201).json({ id: user.id, email: user.email, name: user.name })
+        sendSuccess(res, { id: user.id, email: user.email, name: user.name }, { statusCode: 201 })
 
     })
 
@@ -40,7 +41,7 @@ export class UserController {
         }
 
         const token = generateToken({ userId: user.id, email: user.email });
-        res.json({ token, userId: user.id, email: user.email })
+        sendSuccess(res, { token, userId: user.id, email: user.email })
     })
 
 
@@ -48,10 +49,7 @@ export class UserController {
         const users = await this.userService.findAll()
 
         
-        res.status(200).json({
-            message: 'Lista de usuarios',
-            users
-        })
+        sendSuccess(res, users, { message: 'Lista de usuarios' })
     })
 
 
@@ -64,11 +62,7 @@ export class UserController {
             throw new NotFoundError('Usuario no encontrado');
         }
 
-        res.status(200).json({
-            id: user.id,
-            email: user.email,
-            name: user.name
-        })
+        sendSuccess(res, { id: user.id, email: user.email, name: user.name })
     });
 
     update = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -82,9 +76,7 @@ export class UserController {
 
         const user = await this.userService.updateUser(id, data) 
 
-        res.status(200).json({
-            user
-        })
+        sendSuccess(res, user)
     })
 
     delete = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -96,7 +88,7 @@ export class UserController {
 
         const userDelete = await this.userService.deleteUser(id)
 
-        res.json({ message: 'Delete exitoso', userDelete })
+        sendSuccess(res, userDelete, { message: 'Delete exitoso' })
     })
 
 
