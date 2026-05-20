@@ -13,7 +13,4 @@ export const updatePostSchema = z.object({
     published: z.boolean().optional()
 })
 
-export const deletePostSchema = z.object({
-    id: z.string().uuid(),
-    authorId: z.string().uuid()
-});
+

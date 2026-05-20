@@ -21,11 +21,3 @@ export const loginSchema = z.object({
 })
 
 
-export const userResponseSchema = z.object({
-    email: z.email(),
-    name: z.string().nullable(),
-});
-
-export const findAllUserSchema = z.object({
-    users: z.array(userResponseSchema)
-})
