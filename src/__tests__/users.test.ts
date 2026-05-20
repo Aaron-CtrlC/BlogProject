@@ -9,7 +9,7 @@ describe('POST /users', () => {
       .send({ email: 'not-an-email' });
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toMatchObject({ success: false, error: 'Error de validación' });
   });
 });
 
@@ -20,7 +20,7 @@ describe('POST /users/login', () => {
       .send({ email: 'test@test.com' });
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toMatchObject({ success: false, error: 'Error de validación' });
   });
 });
 
