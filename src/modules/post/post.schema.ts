@@ -9,7 +9,7 @@ export const createPostSchema = z.object({
 
 export const updatePostSchema = z.object({
     title: z.string().min(10).max(200).optional(),
-    content: z.string().optional().min(20),
+    content: z.string().min(20).optional(),
     published: z.boolean().optional()
 })
 
