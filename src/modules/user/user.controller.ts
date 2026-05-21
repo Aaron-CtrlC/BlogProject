@@ -1,11 +1,12 @@
-import { createUserSchema, findAllUserSchema, getIdUserSchema, getUserByIdSchema, loginSchema, updateUserSchema } from "./user.schema.js";
+import { createUserSchema, loginSchema, updateUserSchema } from "./user.schema.js";
 import { UserService } from "./user.service.js";
+import { UnauthorizedError, NotFoundError, ForbiddenError } from "../../utils/errors.js";
 
 import type { Request, Response } from 'express';
 import { generateToken } from "../../../utils/jwt.js";
 import type { AuthRequest } from "../../middleware/auth.js";
 import { asyncHandler } from "../../middleware/asyncHandler.js";
-import type { UpdateUserDTO } from "../../types/user.types.js";
+import { sendSuccess } from "../../utils/response.js";
 
 export class UserController {
     userService: UserService;
@@ -19,7 +20,7 @@ export class UserController {
 
         const user = await this.userService.create(data)
 
-        res.status(201).json({ id: user.id, email: user.email, name: user.name })
+        sendSuccess(res, { id: user.id, email: user.email, name: user.name }, { statusCode: 201 })
 
     })
 
@@ -29,35 +30,26 @@ export class UserController {
 
         const user = await this.userService.findByEmail(data.email)
 
-
         if (!user) {
-            return res.status(401).json({ error: 'Credenciales invalidas' });
+            throw new UnauthorizedError('Credenciales inválidas');
         }
 
-        const isValid = await this.userService.validatePassword(data.password, user.password!)
+        const isValid = await this.userService.validatePassword(data.password, user.password)
 
         if (!isValid) {
-            return res.status(401).json({ error: 'Credenciales Invalidadas' })
+            throw new UnauthorizedError('Credenciales inválidas');
         }
 
         const token = generateToken({ userId: user.id, email: user.email });
-        res.json({ token, userId: user.id, email: user.email })
-
+        sendSuccess(res, { token, userId: user.id, email: user.email })
     })
 
 
     findAll = asyncHandler(async (req: Request, res: Response) => {
         const users = await this.userService.findAll()
 
-        if (!users) {
-            return res.status(404).json({ error: 'Usuarios no encontrados' });
-
-        }
-
-        res.status(200).json({
-            message: 'Lista de usuarios',
-            users
-        })
+        
+        sendSuccess(res, users, { message: 'Lista de usuarios' })
     })
 
 
@@ -67,51 +59,36 @@ export class UserController {
         const user = await this.userService.findById(id)
 
         if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-
+            throw new NotFoundError('Usuario no encontrado');
         }
 
-
-        res.status(200).json({
-            id: user.id,
-            email: user.email,
-            name: user.name
-        })
-
+        sendSuccess(res, { id: user.id, email: user.email, name: user.name })
     });
 
     update = asyncHandler(async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
-            return res.status(403).json({ error: "No puedes actualizar otro usuario" })
+            throw new ForbiddenError('No puedes actualizar otro usuario');
         }
 
         const data = updateUserSchema.parse(req.body)
 
-        const user = await this.userService.updateUser(id, data as UpdateUserDTO) 
+        const user = await this.userService.updateUser(id, data) 
 
-        res.status(200).json({
-            user
-        })
-
+        sendSuccess(res, user)
     })
 
     delete = asyncHandler(async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
-            return res.status(403).json({ error: "No puedes eliminar otro usuario|" })
+            throw new ForbiddenError('No puedes eliminar otro usuario');
         }
 
         const userDelete = await this.userService.deleteUser(id)
 
-        if (!userDelete) {
-            return res.status(404).json({ error: "Usuario no eliminado" })
-        }
-
-        res.json({ message: 'Delete exitoso', userDelete })
-
+        sendSuccess(res, userDelete, { message: 'Delete exitoso' })
     })
 
 

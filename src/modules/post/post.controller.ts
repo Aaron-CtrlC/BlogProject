@@ -2,10 +2,15 @@ import { PostService } from './post.service.js';
 import { createPostSchema, updatePostSchema } from './post.schema.js';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../../middleware/auth.js';
-
+import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
 import { asyncHandler } from "../../middleware/asyncHandler.js";
-import type { CreatePostDTO } from '../../types/post.types.js';
+import { sendSuccess } from "../../utils/response.js";
 
+function requireUserId(req: AuthRequest): string {
+  const userId = req.userId;
+  if (!userId) throw new UnauthorizedError('No autenticado');
+  return userId;
+}
 
 export class PostController {
     private postService: PostService;
@@ -17,14 +22,14 @@ export class PostController {
     create = asyncHandler(async (req: AuthRequest, res: Response) => {
 
         const parsed = createPostSchema.parse(req.body);
-        const authorId: string = req.userId!;
+        const authorId = requireUserId(req);
 
-        const data: CreatePostDTO = {
+        const data = {
             ...parsed,
             authorId
         };
         const post = await this.postService.createPost(data, authorId);
-        res.status(201).json(post);
+        sendSuccess(res, post, { statusCode: 201 });
 
     })
 
@@ -32,37 +37,34 @@ export class PostController {
     findAll = asyncHandler(async (req: Request, res: Response) => {
         const authorId = req.query.authorId ? String(req.query.authorId) : undefined;
         const posts = await this.postService.findAll(authorId);
-        res.json(posts)
+        sendSuccess(res, posts)
     })
 
     findById = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
+        const id: string = req.params.id as string;
         const post = await this.postService.findById(id);
 
         if (!post) {
-            res.status(404).json({ error: 'Post no encontrado' });
-            return;
+            throw new NotFoundError('Post no encontrado');
         }
 
-        res.status(200).json(post)
-
-
+        sendSuccess(res, post)
     })
 
 
     update = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
+        const id: string = req.params.id as string;
 
         const data = updatePostSchema.parse(req.body);
-        const authorId: string = (req as AuthRequest).userId!;
+        const authorId = requireUserId(req as AuthRequest);
         const post = await this.postService.updatePostById(id, data, authorId)
-        res.status(200).json(post)
+        sendSuccess(res, post)
 
     })
 
     delete = asyncHandler(async (req: Request, res: Response) => {
-        const id: number = parseInt(req.params.id as string);
-        const authorId: string = (req as AuthRequest).userId!;
+        const id: string = req.params.id as string;
+        const authorId = requireUserId(req as AuthRequest);
         await this.postService.deletePost(id, authorId);
         res.status(204).send();
     })

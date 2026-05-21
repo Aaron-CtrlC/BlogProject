@@ -11,9 +11,9 @@ class DatabaseConnection {
     }
     public static getInstance(): PrismaClient {
         if (!DatabaseConnection.instance) {
-            const connectionString = process.env.DATABASE_URL || "postgresql://admin:password123@localhost:5432/blog_db";
+            const connectionString = process.env.DATABASE_URL;
             const pool = new Pool({ connectionString });
-            const adapter = new PrismaPg(pool);
+            const adapter = new PrismaPg(pool as any);
             DatabaseConnection.instance = new PrismaClient({
                 adapter,
                 log: ['query', 'error', 'warn'],

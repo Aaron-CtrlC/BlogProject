@@ -1,66 +1,74 @@
 import { prisma } from '../../config/prisma.js';
-import type { CreatePostDTO, Post, UpdatePostDTO } from '../../types/post.types.js';
-
-
+import type { Post } from '../../generated/client/client.js';
+import type { Prisma } from '../../generated/client/client.js';
+import { NotFoundError, ForbiddenError } from '../../utils/errors.js';
 
 export class PostService {
-    async createPost(data: CreatePostDTO, authorId: string): Promise<Post> {
+    async createPost(data: Pick<Prisma.PostUncheckedCreateInput, 'title' | 'content' | 'published'>, authorId: string): Promise<Post> {
+        return prisma.post.create({
+            data: {
+                title: data.title,
+                content: data.content,
+                published: data.published ?? false,
+                authorId
+            }
+        });
+    }
 
-        const createData: CreatePostDTO = {
+    async updatePostById(id: string, data: Partial<Pick<Prisma.PostUncheckedUpdateInput, 'title' | 'content' | 'published'>>, authorId: string): Promise<Post> {
+        const existing = await prisma.post.findFirst({
+            where: { id, deletedAt: null }
+        });
+
+        if (!existing) {
+            throw new NotFoundError('Post no encontrado');
+        }
+        if (existing.authorId !== authorId) {
+            throw new ForbiddenError('No puedes modificar un post que no te pertenece');
+        }
+
+        const updateData: Partial<Pick<Prisma.PostUncheckedUpdateInput, 'title' | 'content' | 'published'>> = {
             title: data.title,
             content: data.content,
             published: data.published,
-            authorId: authorId
-        }
+        };
 
-        const createUser = await prisma.post.create({ data: { ...createData, authorId: authorId } })
-
-        return createUser;
+        return prisma.post.update({
+            where: { id },
+            data: updateData
+        });
     }
 
-    async updatePostById(id: number, data: any, authorId: string): Promise<Post> {
-        const updateData: UpdatePostDTO = {
-            title: data.title,
-            content: data.content,
-            published: data.published,
+    async deletePost(id: string, authorId: string): Promise<Post> {
+        const existing = await prisma.post.findFirst({
+            where: { id, deletedAt: null }
+        });
+
+        if (!existing) {
+            throw new NotFoundError('Post no encontrado');
+        }
+        if (existing.authorId !== authorId) {
+            throw new ForbiddenError('No puedes eliminar un post que no te pertenece');
         }
 
-        const updateUser = await prisma.post.update({ where: { id: id, deletedAt: null, authorId: authorId }, data: updateData })
-        return updateUser;
-
-    }
-
-    async deletePost(id: number, authorId: string): Promise<Post> {
-        const postUpdate: Post = await prisma.post.update({
-            where: { id: id, deletedAt: null, authorId: authorId },
+        return prisma.post.update({
+            where: { id },
             data: { deletedAt: new Date() }
-        })
- 
-        return postUpdate;
+        });
     }
 
-
-
-    async findById(postId: number): Promise<Post | null> {
-        const searchPostId = prisma.post.findFirst({ where: { id: postId, deletedAt: null } })
-        const post = await searchPostId;
-        return post;
-
+    async findById(postId: string): Promise<Post | null> {
+        return prisma.post.findFirst({ where: { id: postId, deletedAt: null } });
     }
 
     async findAll(authorId?: string): Promise<Post[]> {
-        const postList: Post[] = await prisma.post.findMany({
+        return prisma.post.findMany({
             where: {
                 deletedAt: null,
                 ...(authorId && { authorId })
             }
-        })
-
-        return postList;
+        });
     }
-
-
-
 }
 
 
