@@ -118,11 +118,200 @@ Los tests cubren:
 
 ## Diagramas
 
-Los diagramas están en [`Docs/`](Docs/) y usan sintaxis **Mermaid** — se renderizan solos en GitHub y en cualquier editor que lo soporte.
+> También están en [`Docs/`](Docs/) como archivos separados si querés verlos en detalle.
 
-- [`api-diagram.md`](Docs/api-diagram.md) — flujo de rutas y middleware
-- [`data-model.md`](Docs/data-model.md) — modelo entidad-relación
-- [`class-architecture.md`](Docs/class-architecture.md) — diagrama de clases
+### Arquitectura de la API
+
+```mermaid
+graph TB
+    subgraph Clientes
+        A[Client HTTP]
+    end
+
+    subgraph Middleware
+        M1[express.json]
+        M2[auth middleware]
+        M3[asyncHandler]
+        M4[errorHandler]
+    end
+
+    subgraph Rutas_Publicas["Rutas Públicas"]
+        U1["POST /users"]
+        U2["POST /users/login"]
+        U3["GET /users"]
+        U4["GET /users/:id"]
+        P1["GET /posts"]
+        P2["GET /posts/:id"]
+    end
+
+    subgraph Rutas_Protegidas["Rutas Protegidas (auth)"]
+        U5["PUT /users/:id"]
+        U6["DELETE /users/:id"]
+        P3["POST /posts"]
+        P4["PUT /posts/:id"]
+        P5["DELETE /posts/:id"]
+    end
+
+    A --> M1
+    M1 --> Rutas_Publicas
+    M1 --> M2
+    M2 --> Rutas_Protegidas
+    Rutas_Publicas --> M3
+    Rutas_Protegidas --> M3
+    M3 --> M4
+
+    subgraph Controladores["Controllers"]
+        UC[UserController]
+        PC[PostController]
+    end
+
+    U1 --> UC
+    U2 --> UC
+    U3 --> UC
+    U4 --> UC
+    U5 --> UC
+    U6 --> UC
+    P1 --> PC
+    P2 --> PC
+    P3 --> PC
+    P4 --> PC
+    P5 --> PC
+
+    UC --> US[UserService]
+    PC --> PS[PostService]
+    US --> PR[Prisma Client]
+    PS --> PR
+    PR --> DB[(PostgreSQL)]
+```
+
+### Modelo de datos (ERD)
+
+```mermaid
+erDiagram
+    User {
+        string id PK "UUID"
+        string email UK "Email único"
+        string name "Nombre del usuario"
+        string password "Hash bcrypt"
+        datetime deletedAt "Soft delete"
+    }
+
+    Post {
+        string id PK "UUID"
+        string title "Título del post"
+        string content "Contenido del post"
+        boolean published "Publicado sí/no"
+        string authorId FK "Referencia a User.id"
+        datetime deletedAt "Soft delete"
+    }
+
+    User ||--o{ Post : "tiene"
+```
+
+### Diagrama de clases
+
+```mermaid
+classDiagram
+    class AppError {
+        +string message
+        +number statusCode
+        +constructor(message, statusCode)
+    }
+
+    class NotFoundError {
+        +constructor(message)
+    }
+
+    class ForbiddenError {
+        +constructor(message)
+    }
+
+    class UnauthorizedError {
+        +constructor(message)
+    }
+
+    class ConflictError {
+        +constructor(message)
+    }
+
+    AppError <|-- NotFoundError
+    AppError <|-- ForbiddenError
+    AppError <|-- UnauthorizedError
+    AppError <|-- ConflictError
+
+    class UserController {
+        -UserService userService
+        +create(req, res)
+        +login(req, res)
+        +findAll(req, res)
+        +findById(req, res)
+        +update(req, res)
+        +delete(req, res)
+    }
+
+    class PostController {
+        -PostService postService
+        +create(req, res)
+        +findAll(req, res)
+        +findById(req, res)
+        +update(req, res)
+        +delete(req, res)
+    }
+
+    class UserService {
+        +create(data)
+        +findById(id)
+        +findByEmail(email)
+        +findAll()
+        +updateUser(id, data)
+        +validatePassword(plain, hashed)
+        +deleteUser(id)
+    }
+
+    class PostService {
+        +createPost(data, authorId)
+        +updatePostById(id, data, authorId)
+        +deletePost(id, authorId)
+        +findById(postId)
+        +findAll(authorId?)
+    }
+
+    class auth {
+        +AuthRequest interface
+        +auth(req, res, next)
+    }
+
+    class errorHandler {
+        +errorHandler(err, req, res, next)
+    }
+
+    class asyncHandler {
+        +asyncHandler(fn)
+    }
+
+    class sendSuccess {
+        +sendSuccess(res, data, options?)
+    }
+
+    class prisma {
+        +PrismaClient instance
+    }
+
+    UserController --> UserService
+    PostController --> PostService
+    UserService --> prisma
+    PostService --> prisma
+    UserController --> auth
+    PostController --> auth
+    UserController --> asyncHandler
+    PostController --> asyncHandler
+    UserController --> sendSuccess
+    PostController --> sendSuccess
+    UserController --> AppError
+    PostController --> AppError
+    auth --> UnauthorizedError
+    errorHandler --> AppError
+```
 
 ---
 
@@ -143,4 +332,3 @@ Si alguna vez le meto más tiempo, esto es lo que tengo en mente:
 | **CI/CD** | GitHub Actions que corra tests automáticamente |
 | **Búsqueda** | Buscar posts por título o contenido con FTS de PostgreSQL |
 
-Pero para un portfolio o proyecto personal, está más que bien así.
