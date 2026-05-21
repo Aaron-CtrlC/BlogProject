@@ -126,11 +126,21 @@ Los diagramas están en [`Docs/`](Docs/) y usan sintaxis **Mermaid** — se rend
 
 ---
 
-## Lo que no hice (y capaz suma después)
+## Ideas para seguir
 
-- Rate limiting
-- Refresh tokens
-- Paginación en GET /posts
-- CI/CD pipeline
+Si alguna vez le meto más tiempo, esto es lo que tengo en mente:
+
+| Feature | Para qué |
+|---------|----------|
+| **Roles** (admin, user) | Usuarios con permisos especiales |
+| **Categorías / Tags** | Clasificar posts por tema |
+| **Comentarios** | Comentarios anidados en posts, con su propio CRUD |
+| **Paginación** | `GET /posts?page=1&limit=10` para cuando haya muchos posts |
+| **Rate limiting** | Evitar que alguien spamee `/users/login` |
+| **Refresh tokens** | No tener que loguearse cada 7 días |
+| **Subir imágenes** | Multer + S3 o similar para imágenes en posts |
+| **Swagger / OpenAPI** | Documentación interactiva de la API |
+| **CI/CD** | GitHub Actions que corra tests automáticamente |
+| **Búsqueda** | Buscar posts por título o contenido con FTS de PostgreSQL |
 
 Pero para un portfolio o proyecto personal, está más que bien así.
