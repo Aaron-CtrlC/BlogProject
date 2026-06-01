@@ -15,7 +15,7 @@ async function main() {
     await prisma.post.create({
         data: {
             title: 'Mi primer post',
-            content: 'Contenido del post',
+            content: 'Contenido del post debe de ser mayor de 15 caracteres y menor de 5000 caracteres.',
             published: true,
             authorId: user.id
         }

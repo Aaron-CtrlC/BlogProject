@@ -5,7 +5,6 @@ import { UnauthorizedError, NotFoundError, ForbiddenError } from "../../utils/er
 import type { Request, Response } from 'express';
 import { generateToken } from "../../../utils/jwt.js";
 import type { AuthRequest } from "../../middleware/auth.js";
-import { asyncHandler } from "../../middleware/asyncHandler.js";
 import { sendSuccess } from "../../utils/response.js";
 
 export class UserController {
@@ -15,17 +14,17 @@ export class UserController {
     }
 
 
-    create = asyncHandler(async (req: Request, res: Response) => {
+    create = async (req: Request, res: Response) => {
         const data = createUserSchema.parse(req.body)
 
         const user = await this.userService.create(data)
 
         sendSuccess(res, { id: user.id, email: user.email, name: user.name }, { statusCode: 201 })
 
-    })
+    }
 
 
-    login = asyncHandler(async (req: Request, res: Response) => {
+    login = async (req: Request, res: Response) => {
         const data = loginSchema.parse(req.body);
 
         const user = await this.userService.findByEmail(data.email)
@@ -42,18 +41,18 @@ export class UserController {
 
         const token = generateToken({ userId: user.id, email: user.email });
         sendSuccess(res, { token, userId: user.id, email: user.email })
-    })
+    }
 
 
-    findAll = asyncHandler(async (req: Request, res: Response) => {
+    findAll = async (req: Request, res: Response) => {
         const users = await this.userService.findAll()
 
         
         sendSuccess(res, users, { message: 'Lista de usuarios' })
-    })
+    }
 
 
-    findById = asyncHandler(async (req: Request, res: Response) => {
+    findById = async (req: Request, res: Response) => {
         const id = (req.params.id as string)
 
         const user = await this.userService.findById(id)
@@ -63,9 +62,9 @@ export class UserController {
         }
 
         sendSuccess(res, { id: user.id, email: user.email, name: user.name })
-    });
+    };
 
-    update = asyncHandler(async (req: AuthRequest, res: Response) => {
+    update = async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
@@ -77,9 +76,9 @@ export class UserController {
         const user = await this.userService.updateUser(id, data) 
 
         sendSuccess(res, user)
-    })
+    }
 
-    delete = asyncHandler(async (req: AuthRequest, res: Response) => {
+    delete = async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string
 
         if (req.userId !== id) {
@@ -89,7 +88,7 @@ export class UserController {
         const userDelete = await this.userService.deleteUser(id)
 
         sendSuccess(res, userDelete, { message: 'Delete exitoso' })
-    })
+    }
 
 
 

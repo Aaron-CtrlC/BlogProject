@@ -25,7 +25,7 @@ describe('POST /users — validación', () => {
   it('debería rechazar password muy corta', async () => {
     const res = await request(app)
       .post('/users')
-      .send({ email: 'test@test.com', name: 'Test', password: '123' });
+      .send({ email: 'test@test.com', name:'Test', password: '123' });
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ success: false, error: 'Error de validación' });

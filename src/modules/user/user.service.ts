@@ -1,17 +1,15 @@
 import { prisma } from '../../config/prisma.js';
 import bcrypt from 'bcrypt';
 import type { User } from '../../generated/client/client.js';
-import type { Prisma } from '../../generated/client/client.js';
+import type { CreateUserInput, UpdateUserInput } from './user.schema.js';
 import { NotFoundError } from '../../utils/errors.js';
 
 export class UserService {
-    async create(data: Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>) {
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+    async create(data: CreateUserInput) {
         return prisma.user.create({
             data: {
-                email: data.email,
-                name: data.name,
-                password: hashedPassword,
+                ...data,
+                password: await bcrypt.hash(data.password, 10),
             }
         });
     }
@@ -34,7 +32,7 @@ export class UserService {
         });
     }
 
-    async updateUser(id: string, data: Partial<Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>>) {
+    async updateUser(id: string, data: UpdateUserInput) {
         const existing = await prisma.user.findFirst({
             where: { id, deletedAt: null }
         });
@@ -42,7 +40,7 @@ export class UserService {
             throw new NotFoundError('Usuario no encontrado');
         }
 
-        const updateData: Partial<Pick<Prisma.UserCreateInput, 'email' | 'name' | 'password'>> = { ...data };
+        const updateData = { ...data };
         if (data.password) {
             updateData.password = await bcrypt.hash(data.password, 10);
         }

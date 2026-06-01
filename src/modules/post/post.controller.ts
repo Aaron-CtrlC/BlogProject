@@ -3,7 +3,6 @@ import { createPostSchema, updatePostSchema } from './post.schema.js';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../../middleware/auth.js';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
-import { asyncHandler } from "../../middleware/asyncHandler.js";
 import { sendSuccess } from "../../utils/response.js";
 
 function requireUserId(req: AuthRequest): string {
@@ -19,7 +18,7 @@ export class PostController {
         this.postService = new PostService();
     }
 
-    create = asyncHandler(async (req: AuthRequest, res: Response) => {
+    create = async (req: AuthRequest, res: Response) => {
 
         const parsed = createPostSchema.parse(req.body);
         const authorId = requireUserId(req);
@@ -31,16 +30,16 @@ export class PostController {
         const post = await this.postService.createPost(data, authorId);
         sendSuccess(res, post, { statusCode: 201 });
 
-    })
+    }
 
 
-    findAll = asyncHandler(async (req: Request, res: Response) => {
+    findAll = async (req: Request, res: Response) => {
         const authorId = req.query.authorId ? String(req.query.authorId) : undefined;
         const posts = await this.postService.findAll(authorId);
         sendSuccess(res, posts)
-    })
+    }
 
-    findById = asyncHandler(async (req: Request, res: Response) => {
+    findById = async (req: Request, res: Response) => {
         const id: string = req.params.id as string;
         const post = await this.postService.findById(id);
 
@@ -49,23 +48,23 @@ export class PostController {
         }
 
         sendSuccess(res, post)
-    })
+    }
 
 
-    update = asyncHandler(async (req: Request, res: Response) => {
-        const id: string = req.params.id as string;
+    update = async (req: AuthRequest, res: Response) => {
+        const id = req.params.id;
 
         const data = updatePostSchema.parse(req.body);
-        const authorId = requireUserId(req as AuthRequest);
+        const authorId = requireUserId(req);
         const post = await this.postService.updatePostById(id, data, authorId)
         sendSuccess(res, post)
 
-    })
+    }
 
-    delete = asyncHandler(async (req: Request, res: Response) => {
-        const id: string = req.params.id as string;
-        const authorId = requireUserId(req as AuthRequest);
+    delete = async (req: AuthRequest, res: Response) => {
+        const id: string = req.params.id ;
+        const authorId = requireUserId(req);
         await this.postService.deletePost(id, authorId);
         res.status(204).send();
-    })
+    }
 };

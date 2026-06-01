@@ -48,7 +48,7 @@ describe('GET /posts', () => {
   it('debería devolver lista de posts', async () => {
     const res = await request(app).get('/posts');
 
-    expect([200, 500]).toContain(res.status);
+    expect([200]).toContain(res.status);
     if (res.status === 200) {
       expect(res.body).toMatchObject({ success: true });
       expect(Array.isArray(res.body.data)).toBe(true);
