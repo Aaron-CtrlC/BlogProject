@@ -5,7 +5,7 @@ import type { CreateUserInput, UpdateUserInput } from './user.schema.js';
 import { NotFoundError } from '../../utils/errors.js';
 
 export class UserService {
-    async create(data: CreateUserInput) {
+    async createUser(data: CreateUserInput) {
         return prisma.user.create({
             data: {
                 ...data,
@@ -14,19 +14,19 @@ export class UserService {
         });
     }
 
-    async findById(id: string): Promise<User | null> {
+    async findUserById(id: string): Promise<User | null> {
         return prisma.user.findFirst({
             where: { id, deletedAt: null }
         });
     }
 
-    async findByEmail(email: string): Promise<User | null> {
+    async findUserByEmail(email: string): Promise<User | null> {
         return prisma.user.findFirst({
             where: { email, deletedAt: null }
         });
     }
 
-    async findAll(): Promise<User[]> {
+    async findAllUsers(): Promise<User[]> {
         return prisma.user.findMany({
             where: { deletedAt: null }
         });

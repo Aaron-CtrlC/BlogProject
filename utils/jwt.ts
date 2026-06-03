@@ -1,4 +1,3 @@
-import 'dotenv/config.js'
 import jwt from 'jsonwebtoken';
 
 function getJwtSecret(): string {

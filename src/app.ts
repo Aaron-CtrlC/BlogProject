@@ -2,7 +2,6 @@ import express from 'express';
 import userRoutes from './modules/user/user.route.js';
 import postRoutes from './modules/post/post.route.js';
 
-import 'dotenv/config'
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();

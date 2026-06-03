@@ -17,7 +17,7 @@ export class UserController {
     create = async (req: Request, res: Response) => {
         const data = createUserSchema.parse(req.body)
 
-        const user = await this.userService.create(data)
+        const user = await this.userService.createUser(data)
 
         sendSuccess(res, { id: user.id, email: user.email, name: user.name }, { statusCode: 201 })
 
@@ -27,15 +27,15 @@ export class UserController {
     login = async (req: Request, res: Response) => {
         const data = loginSchema.parse(req.body);
 
-        const user = await this.userService.findByEmail(data.email)
+        const user = await this.userService.findUserByEmail(data.email)
 
         if (!user) {
             throw new UnauthorizedError('Credenciales inválidas');
         }
 
-        const isValid = await this.userService.validatePassword(data.password, user.password)
+        const isPasswordValid = await this.userService.validatePassword(data.password, user.password)
 
-        if (!isValid) {
+        if (!isPasswordValid) {
             throw new UnauthorizedError('Credenciales inválidas');
         }
 
@@ -45,22 +45,24 @@ export class UserController {
 
 
     findAll = async (req: Request, res: Response) => {
-        const users = await this.userService.findAll()
+        const users = await this.userService.findAllUsers()
 
         
-        sendSuccess(res, users, { message: 'Lista de usuarios' })
+        sendSuccess(res, {users: users.map(u => ({ id: u.id, email: u.email, name: u.name }))}, { message: 'Lista de usuarios' })
     }
 
 
     findById = async (req: Request, res: Response) => {
         const id = (req.params.id as string)
 
-        const user = await this.userService.findById(id)
+        const user = await this.userService.findUserById(id)
 
         if (!user) {
             throw new NotFoundError('Usuario no encontrado');
         }
 
+
+        
         sendSuccess(res, { id: user.id, email: user.email, name: user.name })
     };
 
@@ -71,11 +73,13 @@ export class UserController {
             throw new ForbiddenError('No puedes actualizar otro usuario');
         }
 
-        const data = updateUserSchema.parse(req.body)
+        const user = updateUserSchema.parse(req.body)
 
-        const user = await this.userService.updateUser(id, data) 
+        const updatedUser = await this.userService.updateUser(id, user) 
 
-        sendSuccess(res, user)
+
+        
+        sendSuccess(res, { id: updatedUser.id, email: updatedUser.email, name: updatedUser.name }, { message: 'Update exitoso' })
     }
 
     delete = async (req: AuthRequest, res: Response) => {
@@ -85,9 +89,9 @@ export class UserController {
             throw new ForbiddenError('No puedes eliminar otro usuario');
         }
 
-        const userDelete = await this.userService.deleteUser(id)
+        const deletedUser = await this.userService.deleteUser(id)
 
-        sendSuccess(res, userDelete, { message: 'Delete exitoso' })
+        sendSuccess(res, { message: 'Delete exitoso' })
     }
 
 

@@ -13,7 +13,7 @@ class DatabaseConnection {
         if (!DatabaseConnection.instance) {
             const connectionString = process.env.DATABASE_URL;
             const pool = new Pool({ connectionString });
-            const adapter = new PrismaPg(pool as any);
+            const adapter = new PrismaPg(pool);
             DatabaseConnection.instance = new PrismaClient({
                 adapter,
                 log: ['query', 'error', 'warn'],

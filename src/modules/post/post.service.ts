@@ -13,7 +13,7 @@ export class PostService {
         });
     }
 
-    async updatePostById(id: string, data: UpdatePostInput, authorId: string): Promise<Post> {
+    async updatePost(id: string, data: UpdatePostInput, authorId: string): Promise<Post> {
         const existing = await prisma.post.findFirst({
             where: { id, deletedAt: null }
         });
@@ -49,11 +49,11 @@ export class PostService {
         });
     }
 
-    async findById(postId: string): Promise<Post | null> {
+    async findPostById(postId: string): Promise<Post | null> {
         return prisma.post.findFirst({ where: { id: postId, deletedAt: null } });
     }
 
-    async findAll(authorId?: string): Promise<Post[]> {
+    async findAllPosts(authorId?: string): Promise<Post[]> {
         return prisma.post.findMany({
             where: {
                 deletedAt: null,

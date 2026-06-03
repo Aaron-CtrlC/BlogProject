@@ -35,13 +35,13 @@ export class PostController {
 
     findAll = async (req: Request, res: Response) => {
         const authorId = req.query.authorId ? String(req.query.authorId) : undefined;
-        const posts = await this.postService.findAll(authorId);
+        const posts = await this.postService.findAllPosts(authorId);
         sendSuccess(res, posts)
     }
 
     findById = async (req: Request, res: Response) => {
         const id: string = req.params.id as string;
-        const post = await this.postService.findById(id);
+        const post = await this.postService.findPostById(id);
 
         if (!post) {
             throw new NotFoundError('Post no encontrado');
@@ -56,7 +56,7 @@ export class PostController {
 
         const data = updatePostSchema.parse(req.body);
         const authorId = requireUserId(req);
-        const post = await this.postService.updatePostById(id, data, authorId)
+        const post = await this.postService.updatePost(id, data, authorId)
         sendSuccess(res, post)
 
     }

@@ -1,4 +1,3 @@
-import 'dotenv/config';
 
 const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET'] as const;
 
