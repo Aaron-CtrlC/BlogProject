@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { PostService } from './post.service.js';
 import { createPostSchema, updatePostSchema } from './post.schema.js';
 import type { Request, Response } from 'express';
@@ -40,7 +41,7 @@ export class PostController {
     }
 
     findById = async (req: Request, res: Response) => {
-        const id: string = req.params.id as string;
+        const id = z.string().uuid().parse(req.params.id);
         const post = await this.postService.findPostById(id);
 
         if (!post) {
@@ -52,7 +53,7 @@ export class PostController {
 
 
     update = async (req: AuthRequest, res: Response) => {
-        const id = req.params.id;
+        const id = z.string().uuid().parse(req.params.id);
 
         const data = updatePostSchema.parse(req.body);
         const authorId = requireUserId(req);
@@ -62,7 +63,7 @@ export class PostController {
     }
 
     delete = async (req: AuthRequest, res: Response) => {
-        const id: string = req.params.id ;
+        const id = z.string().uuid().parse(req.params.id);
         const authorId = requireUserId(req);
         await this.postService.deletePost(id, authorId);
         res.status(204).send();

@@ -176,7 +176,6 @@ describe('DELETE /users/:id', () => {
       .delete(`/users/${userId}`)
       .set('Authorization', `Bearer ${token}`);
 
-    expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ success: true });
+    expect(res.status).toBe(204);
   });
 });

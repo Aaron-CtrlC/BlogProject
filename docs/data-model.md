@@ -38,7 +38,7 @@ erDiagram
 |-------|------|---------------|
 | id | UUID | `@id @default(uuid())` |
 | title | String | `min(10).max(200)` |
-| content | String | `min(15)` |
+| content | String | `min(15).MAX(5000)` |
 | published | Boolean | `@default(false)` |
 | authorId | String | FK → User.id |
 | deletedAt | DateTime? | Nullable, soft delete |

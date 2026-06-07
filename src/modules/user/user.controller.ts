@@ -1,9 +1,10 @@
+import { z } from 'zod';
 import { createUserSchema, loginSchema, updateUserSchema } from "./user.schema.js";
 import { UserService } from "./user.service.js";
 import { UnauthorizedError, NotFoundError, ForbiddenError } from "../../utils/errors.js";
 
 import type { Request, Response } from 'express';
-import { generateToken } from "../../../utils/jwt.js";
+import { generateToken } from "../../utils/jwt.js";
 import type { AuthRequest } from "../../middleware/auth.js";
 import { sendSuccess } from "../../utils/response.js";
 
@@ -53,7 +54,7 @@ export class UserController {
 
 
     findById = async (req: Request, res: Response) => {
-        const id = (req.params.id as string)
+        const id = z.string().uuid().parse(req.params.id)
 
         const user = await this.userService.findUserById(id)
 
@@ -67,7 +68,7 @@ export class UserController {
     };
 
     update = async (req: AuthRequest, res: Response) => {
-        const id = req.params.id as string
+        const id = z.string().uuid().parse(req.params.id)
 
         if (req.userId !== id) {
             throw new ForbiddenError('No puedes actualizar otro usuario');
@@ -83,15 +84,15 @@ export class UserController {
     }
 
     delete = async (req: AuthRequest, res: Response) => {
-        const id = req.params.id as string
+        const id = z.string().uuid().parse(req.params.id)
 
         if (req.userId !== id) {
             throw new ForbiddenError('No puedes eliminar otro usuario');
         }
 
-        const deletedUser = await this.userService.deleteUser(id)
+        await this.userService.deleteUser(id)
 
-        sendSuccess(res, { message: 'Delete exitoso' })
+        res.status(204).send();
     }
 
 
