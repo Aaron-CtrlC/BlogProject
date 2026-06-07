@@ -2,15 +2,9 @@ import { z } from 'zod';
 import { PostService } from './post.service.js';
 import { createPostSchema, updatePostSchema } from './post.schema.js';
 import type { Request, Response } from 'express';
-import type { AuthRequest } from '../../middleware/auth.js';
-import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
+import { type AuthRequest, requireUserId } from '../../middleware/auth.js';
+import { NotFoundError } from '../../utils/errors.js';
 import { sendSuccess } from "../../utils/response.js";
-
-function requireUserId(req: AuthRequest): string {
-  const userId = req.userId;
-  if (!userId) throw new UnauthorizedError('No autenticado');
-  return userId;
-}
 
 export class PostController {
     private postService: PostService;

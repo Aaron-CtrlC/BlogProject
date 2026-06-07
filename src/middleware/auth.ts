@@ -3,29 +3,35 @@ import { verifyToken } from '../utils/jwt.js';
 import { UnauthorizedError } from '../utils/errors.js';
 
 export interface AuthRequest extends Request {
-    userId?: string;
-    email?: string;
+  userId?: string;
+  email?: string;
+}
+
+export function requireUserId(req: AuthRequest): string {
+  const userId = req.userId;
+  if (!userId) throw new UnauthorizedError('No autenticado');
+  return userId;
 }
 
 export const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
-        return next(new UnauthorizedError('No se proporcionó token'));
-    }
+  if (!authHeader) {
+    return next(new UnauthorizedError('No se proporcionó token'));
+  }
 
-    const token = authHeader.split(' ')[1];
+  const token = authHeader.split(' ')[1];
 
-    if (!token) {
-        return next(new UnauthorizedError('Token malformado'));
-    }
+  if (!token) {
+    return next(new UnauthorizedError('Token malformado'));
+  }
 
-    try {
-        const decoded = verifyToken(token) as {userId: string; email: string};
-        req.userId = decoded.userId;
-        req.email = decoded.email;
-        next();
-    } catch (error) {
-        return next(new UnauthorizedError('Token inválido o expirado'));
-    }
+  try {
+    const decoded = verifyToken(token) as { userId: string; email: string };
+    req.userId = decoded.userId;
+    req.email = decoded.email;
+    next();
+  } catch (error) {
+    return next(new UnauthorizedError('Token inválido o expirado'));
+  }
 };
